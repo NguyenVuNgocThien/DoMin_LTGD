@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SoXo.BUS;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,11 +13,14 @@ namespace SoXo
 {
     public partial class Form1 : Form
     {
+        BUS_SaveScore bSave;
+        public String TenNguoiChoi="";
         private int s = 0, w = 0, row = 0, col = 0, slmin = 0;
         private Button[,] domin;
         private int[,] a;
         private int control = 0;
         private int SoLuongODaMo = 0;
+        private int score = 0;
         private bool[] Level = new bool[5];
         private void CapDo()
         {
@@ -26,7 +30,7 @@ namespace SoXo
             }
             if (rdCap1.Checked == true)
             {
-                slmin = 2 ;
+                slmin = 0 ;
                 w = 40;
                 row = panDoMin.Width / w;
                 col = panDoMin.Height / w;
@@ -78,6 +82,7 @@ namespace SoXo
         public Form1()
         {
             InitializeComponent();
+            bSave = new BUS_SaveScore();
         }
 
         private void NewGame_Click(object sender, EventArgs e)
@@ -88,6 +93,8 @@ namespace SoXo
                 {
                     domin[i, j].Width = 0;
                     domin[i, j].Height = 0;
+                    score = 0;
+                    timer1.Enabled = true;
                 }
             }
             control = 0;
@@ -95,11 +102,52 @@ namespace SoXo
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            label4.Text = TenNguoiChoi;
+            bSave.GetListScore(dataGridView1);
+            dataGridView1.Columns[0].Width = (int)(dataGridView1.Width * 0.2);
+            dataGridView1.Columns[1].Width = (int)(dataGridView1.Width * 0.4);
+            dataGridView1.Columns[2].Width = (int)(dataGridView1.Width * 0.2);
+        }
 
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (control == -1)
+                timer1.Enabled = false;
+            else if (control == 0 && row != 0)
+            {
+                score++;
+                label2.Text = score.ToString();
+            }
+            else if (control == 0 && row == 0)
+            {
+                score = 0;
+                label2.Text = score.ToString();
+                timer1.Enabled = true;
+            }
+        }
+
+        private void saveScoreToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveScore newScore = new SaveScore();
+            newScore.TenNguoiChoi = TenNguoiChoi;
+            newScore.Score = score;
+            if (bSave.SaveScore(newScore) == 1)
+            {
+                MessageBox.Show("Lưu Thành Công");
+                bSave.GetListScore(dataGridView1);
+            }
+            else
+                MessageBox.Show("Lưu Thất Bại");
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
 
         private void btStart_Click(object sender, EventArgs e)
         {
+            NewGame.PerformClick();
             if (rdCap1.Checked == true || rdCap2.Checked == true || rdCap3.Checked == true || rdCap4.Checked == true || rdCap5.Checked == true)
             {
                 CapDo();
